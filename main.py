@@ -10,15 +10,15 @@ channel_5 = []
 state_list = []
 def read_AVHRR(buff):
     global state_list
-    if len(state_list) == 0:
-        state_list.append(buff)
-        return 0
-    else:
-        state_list.append(buff)
+    #if len(state_list) == 0:
+    #    state_list.append(buff)
+    #    return 0
+    #else:
+    #    state_list.append(buff)
         #buff = (state_list[1] << 16) | state_list[0]
         #buff = state_list[1] << state_list [0]
-        buff = state_list[0] + state_list[1]
-        state_list = []
+        #buff = state_list[0] + state_list[1]
+    #    state_list = []
     global lines
     global stop
     resolution = 2048
