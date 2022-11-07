@@ -7,7 +7,18 @@ channel_2 = []
 channel_3 = []
 channel_4 = []
 channel_5 = []
+state_list = []
 def read_AVHRR(buff):
+    global state_list
+    if len(state_list) == 0:
+        state_list.append(buff)
+        return 0
+    else:
+        state_list.append(buff)
+        #buff = (state_list[1] << 16) | state_list[0]
+        #buff = state_list[1] << state_list [0]
+        buff = state_list[0] + state_list[1]
+        state_list = []
     global lines
     global stop
     resolution = 2048
@@ -47,9 +58,10 @@ def process_AVHRR():
     ch4 = Image.new('RGB',(2048,lines))
     ch5 = Image.new('RGB',(2048,lines))
     px, py = 0, 0
-    for p in range(lines):
+    for p in range(lines*w):
         if px == w:
             py = py+1
+            #print(py)
             px = 0
         else:
             #print(py,px)
@@ -65,7 +77,7 @@ def process_AVHRR():
     ch3.save("ch3.png")
     ch4.save("ch4.png")
     ch5.save("ch5.png")
-with open("hrpt.raw16",'rb') as f:
+with open("noaa_hrpt.raw16",'rb') as f:
     for buffer in read_in_chunks(f,buffsize):
         read_AVHRR(buffer)
     print("Output images...")
@@ -76,7 +88,3 @@ f = open("channel_3.txt",'w')
 f.write(str(channel_3))
 f.close()
 print("Finished")
-
-
-    
-    
