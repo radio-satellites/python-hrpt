@@ -8,17 +8,24 @@ channel_3 = []
 channel_4 = []
 channel_5 = []
 state_list = []
+def int_to_bytes(x: int) -> bytes:
+    return x.to_bytes((x.bit_length() + 7) // 8, 'big')
+
 def read_AVHRR(buff):
     global state_list
-    #if len(state_list) == 0:
-    #    state_list.append(buff)
-    #    return 0
-    #else:
-    #    state_list.append(buff)
+    if len(state_list) == 0:
+        state_list.append(buff)
+        return 0
+    else:
+        state_list.append(buff)
         #buff = (state_list[1] << 16) | state_list[0]
-        #buff = state_list[1] << state_list [0]
-        #buff = state_list[0] + state_list[1]
-    #    state_list = []
+        buff = int.from_bytes(state_list[0], "big")<<8| int.from_bytes(state_list[1], "big")
+        #print(type(buff))
+        #print(buff)
+        buff =  int_to_bytes(buff)
+        #buff = int.to_bytes(int(int(state_list[0]) + int(state_list[1])),"big")
+        
+        state_list = []
     global lines
     global stop
     resolution = 2048
@@ -27,7 +34,7 @@ def read_AVHRR(buff):
     for channel in range(5):
         for i in range(resolution):
             try:
-                pixel = buffer[750 + channel + i * 5]
+                pixel = buff[750 + channel + i * 5]
             except:
                 print("ERROR READING PIXEL...")
                 stop = True
@@ -77,14 +84,12 @@ def process_AVHRR():
     ch3.save("ch3.png")
     ch4.save("ch4.png")
     ch5.save("ch5.png")
-with open("noaa_hrpt.raw16",'rb') as f:
+with open("hrpt.raw16",'rb') as f:
+    print("READING RAW BUFFER")
     for buffer in read_in_chunks(f,buffsize):
         read_AVHRR(buffer)
     print("Output images...")
     process_AVHRR()
         
     f.close()
-f = open("channel_3.txt",'w')
-f.write(str(channel_3))
-f.close()
 print("Finished")
