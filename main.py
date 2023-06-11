@@ -13,11 +13,11 @@ bytes_noframes = os.path.getsize('NOAA19_may13.raw16')
 
 lines = int(bytes_noframes/buffsize_bytes)
 
-ch1 = Image.new('I',(int(2048),lines))
-ch2 = Image.new('I',(int(2048),lines))
-ch3 = Image.new('I',(int(2048),lines))
-ch4 = Image.new('I',(int(2048),lines))
-ch5 = Image.new('I',(int(2048),lines))
+ch1 = Image.new('I;16',(int(2048),lines))
+ch2 = Image.new('I;16',(int(2048),lines))
+ch3 = Image.new('I;16',(int(2048),lines))
+ch4 = Image.new('I;16',(int(2048),lines))
+ch5 = Image.new('I;16',(int(2048),lines))
 
 print("Found "+str(lines)+" frames!")
 
@@ -36,11 +36,11 @@ with open("NOAA19_may13.raw16",'rb') as f:
             #Deinterleave
             #print((k,i))
             #print(buffer[750 + 5*k])
-            ch1.putpixel((k,i),buffer[750 + 5*k]*20)
-            ch2.putpixel((k,i),buffer[751 + 5*k]*20)
-            ch3.putpixel((k,i),buffer[752 + 5*k]*20)
-            ch4.putpixel((k,i),buffer[753 + 5*k]*20)
-            ch5.putpixel((k,i),buffer[754 + 5*k]*20)
+            ch1.putpixel((k,i),buffer[750 + 5*k]*64) #proper 16 bit conversion
+            ch2.putpixel((k,i),buffer[751 + 5*k]*64)# these are 10 bits packed into 16
+            ch3.putpixel((k,i),buffer[752 + 5*k]*64)#Treat these like 10 bits
+            ch4.putpixel((k,i),buffer[753 + 5*k]*64)
+            ch5.putpixel((k,i),buffer[754 + 5*k]*64)
         buffer = []
 
             
