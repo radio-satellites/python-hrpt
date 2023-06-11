@@ -1,95 +1,66 @@
 from PIL import Image
-stop = False
-buffsize = 11090
-lines = 0
-channel_1 = []
-channel_2 = []
-channel_3 = []
-channel_4 = []
-channel_5 = []
-state_list = []
-def int_to_bytes(x: int) -> bytes:
-    return x.to_bytes((x.bit_length() + 7) // 8, 'big')
+import os
+import struct
+from tqdm import tqdm
 
-def read_AVHRR(buff):
-    global state_list
-    if len(state_list) == 0:
-        state_list.append(buff)
-        return 0
-    else:
-        state_list.append(buff)
-        #buff = (state_list[1] << 16) | state_list[0]
-        buff = int.from_bytes(state_list[0], "big")<<8| int.from_bytes(state_list[1], "big")
-        #print(type(buff))
-        #print(buff)
-        buff =  int_to_bytes(buff)
-        #buff = int.to_bytes(int(int(state_list[0]) + int(state_list[1])),"big")
+buffsize = int(11090*16)
+buffsize_bytes = int(buffsize/8)
+lines = 0
+
+buffer = []
+
+bytes_noframes = os.path.getsize('NOAA19_may13.raw16')
+
+lines = int(bytes_noframes/buffsize_bytes)
+
+ch1 = Image.new('I',(int(2048),lines))
+ch2 = Image.new('I',(int(2048),lines))
+ch3 = Image.new('I',(int(2048),lines))
+ch4 = Image.new('I',(int(2048),lines))
+ch5 = Image.new('I',(int(2048),lines))
+
+print("Found "+str(lines)+" frames!")
+
+cur_x = 0
+
+cur_y = 0
+
+with open("NOAA19_may13.raw16",'rb') as f:
+    for i in tqdm(range(lines)):
         
-        state_list = []
-    global lines
-    global stop
-    resolution = 2048
-    pos = 750 #AVHRR data
-    channel = 3 #change to decode data
-    for channel in range(5):
-        for i in range(resolution):
-            try:
-                pixel = buff[750 + channel + i * 5]
-            except:
-                print("ERROR READING PIXEL...")
-                stop = True
-            if channel == 0:
-                channel_1.append(pixel*5)
-            if channel == 1:
-                channel_2.append(pixel*5)
-            if channel == 2:
-                channel_3.append(pixel*5)
-            if channel == 3:
-                channel_4.append(pixel*5)
-            if channel == 4:
-                channel_5.append(pixel*5)
-    lines = lines + 1
-        
-        
-def read_in_chunks(file_object,chunk_size):
-    while True:
-        data = file_object.read(chunk_size)
-        if not data:
-            break
-        yield data
-def process_AVHRR():
-    w = 2048
-    ch1 = Image.new('RGB',(2048,lines))
-    ch2 = Image.new('RGB',(2048,lines))
-    ch3 = Image.new('RGB',(2048,lines))
-    ch4 = Image.new('RGB',(2048,lines))
-    ch5 = Image.new('RGB',(2048,lines))
-    px, py = 0, 0
-    for p in range(lines*w):
-        if px == w:
-            py = py+1
-            #print(py)
-            px = 0
-        else:
-            #print(py,px)
-            #print(round(channel_3[py*w + px]/6))
-            ch1.putpixel((px, py), (int(round(channel_1[py*w + px]/2)),int(round(channel_1[py*w + px]/2)),int(round(channel_1[py*w + px]/2))))
-            ch2.putpixel((px, py), (int(round(channel_2[py*w + px]/2)),int(round(channel_2[py*w + px]/2)),int(round(channel_2[py*w + px]/2))))
-            ch3.putpixel((px, py), (int(round(channel_3[py*w + px]/2)),int(round(channel_3[py*w + px]/2)),int(round(channel_3[py*w + px]/2))))
-            ch4.putpixel((px, py), (int(round(channel_4[py*w + px]/2)),int(round(channel_4[py*w + px]/2)),int(round(channel_4[py*w + px]/2))))
-            ch5.putpixel((px, py), (int(round(channel_5[py*w + px]/2)),int(round(channel_5[py*w + px]/2)),int(round(channel_5[py*w + px]/2))))
-            px = px+1
-    ch1.save("ch1.png")
-    ch2.save("ch2.png")
-    ch3.save("ch3.png")
-    ch4.save("ch4.png")
-    ch5.save("ch5.png")
-with open("hrpt.raw16",'rb') as f:
-    print("READING RAW BUFFER")
-    for buffer in read_in_chunks(f,buffsize):
-        read_AVHRR(buffer)
-    print("Output images...")
-    process_AVHRR()
-        
-    f.close()
-print("Finished")
+        for x in range(int(buffsize_bytes/2)):
+            ints = f.read(2)
+            current_int = ints[1] << 8 | ints[0] #struct.unpack_from("<H",f.read(2))[0] #
+            buffer.append(current_int)
+        for k in range(2048):
+            #Deinterleave
+            #print((k,i))
+            #print(buffer[750 + 5*k])
+            ch1.putpixel((k,i),buffer[750 + 5*k]*20)
+            ch2.putpixel((k,i),buffer[751 + 5*k]*20)
+            ch3.putpixel((k,i),buffer[752 + 5*k]*20)
+            ch4.putpixel((k,i),buffer[753 + 5*k]*20)
+            ch5.putpixel((k,i),buffer[754 + 5*k]*20)
+        buffer = []
+
+            
+    
+ch1.save("AVHRR-CH1.png")
+ch2.save("AVHRR-CH2.png")
+ch3.save("AVHRR-CH3.png")
+ch4.save("AVHRR-CH4.png")
+ch5.save("AVHRR-CH5.png") 
+    
+
+
+
+
+"""
+for i in range(1505,5596,2): #start, stop, step
+        current_int = int(bytes(current_frame[i:i+1]))
+        if cur_x >= 2048:
+            cur_x = 0
+            cur_y += 1
+        ch1.putpixel((cur_x,cur_y),(current_int,current_int,current_int))
+        cur_x += 1
+"""
