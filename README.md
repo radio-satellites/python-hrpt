@@ -2,7 +2,7 @@
 
 Read NOAA HRPT binaries and output images, all in python!
 
-The input is synchronized and derandomized CADU (not really, more like N-KLM) frames. The output is imagery in 16-bit PNG format for AVHRR channels, and 3x8 bit color format for the composite. 
+The input is synchronized and derandomized CADU (not really, more like NOAA KLM) frames. The output is imagery in 16-bit PNG format for AVHRR channels, and 3x8 bit color format for the composite. 
 
 # Format
 
